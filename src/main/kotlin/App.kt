@@ -8,11 +8,14 @@ import kotlinx.serialization.json.Json
 import emotion.react.css
 import csstype.Position
 import csstype.px
+import react.dom.html.InputType
+import react.dom.html.InputType.text
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.img
+import react.dom.html.ReactHTML.input
 
 suspend fun fetchVideo(id: Int): Video {
     val response = window
@@ -20,6 +23,7 @@ suspend fun fetchVideo(id: Int): Video {
         .await()
         .text()
         .await()
+
     return Json.decodeFromString(response)
 }
 
@@ -37,6 +41,10 @@ val App = FC<Props> {
     var currentVideo: Video? by useState(null)
     var unwatchedVideos: List<Video> by useState(emptyList())
     var watchedVideos: List<Video> by useState(emptyList())
+    val (inputValue, setInputValue) =  useState("")
+
+    // var inputValue: String? by useState("")
+
 
     useEffectOnce {
         mainScope.launch {
@@ -44,7 +52,15 @@ val App = FC<Props> {
         }
     }
 
-  h1 {
+    input {
+        value = inputValue
+        placeholder = "search"
+        type = text
+        onChange = { setInputValue(it.target.value)
+        }
+    }
+
+    h1 {
         css {
             marginTop = 50.px
         }
@@ -55,7 +71,9 @@ val App = FC<Props> {
             +"Videos to watch"
         }
         VideoList {
-            videos = unwatchedVideos
+            videos = unwatchedVideos.filter {video ->
+                video.title.lowercase().contains(inputValue.lowercase() )
+            }
             selectedVideo = currentVideo
             onSelectVideo = { video ->
                 currentVideo = video
@@ -87,4 +105,4 @@ val App = FC<Props> {
             }
         }
     }
-   }
+}
